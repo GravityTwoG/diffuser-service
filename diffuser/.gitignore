@@ -134,4 +134,4 @@ dmypy.json
 results/*
 debug_states/*
 
-output
+images/*.png
