@@ -1,18 +1,23 @@
-from generate_image import generate_image
+import sys
+import os
 import json
 
 import pika
-import sys
-import os
+from dotenv import load_dotenv
 
-RABBITMQ_HOST = 'localhost'
-RABBITMQ_PORT = 5672
+from generate_image import generate_image
 
-RABBITMQ_USERNAME = 'admin'
-RABBITMQ_PASSWORD = '12121212'
 
-GENERATION_REQUEST_QUEUE = 'image_generation_requests'
-IMAGE_GENERATED_QUEUE = 'image_generation_responses'
+load_dotenv()
+
+RABBITMQ_HOST = os.getenv('RABBITMQ_HOST')
+RABBITMQ_PORT = os.getenv('RABBITMQ_PORT')
+
+RABBITMQ_USERNAME = os.getenv('RABBITMQ_USERNAME')
+RABBITMQ_PASSWORD = os.getenv('RABBITMQ_PASSWORD')
+
+GENERATION_REQUEST_QUEUE = os.getenv('GENERATION_REQUEST_QUEUE')
+IMAGE_GENERATED_QUEUE = os.getenv('IMAGE_GENERATED_QUEUE')
 
 def send_image_generated(
   ch: pika.adapters.blocking_connection.BlockingChannel, 
