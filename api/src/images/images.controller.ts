@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { GenerationRequestDTO } from './dto/generation-request.dto';
+import { GeneratedImagesDTO } from './dto/generated-images.dto';
 
 import { ImagesService } from './images.service';
 
@@ -16,7 +17,18 @@ export class ImagesController {
   }
 
   @Get('generation/:id')
-  getGenerationRequest(@Param('id') id: string) {
-    return this.imagesService.getGenerationStatus(id);
+  async getGenerationRequest(
+    @Param('id') id: string,
+  ): Promise<GeneratedImagesDTO> {
+    const result = await this.imagesService.getGeneratedImages(id);
+
+    return {
+      id: result.id,
+      status: result.status,
+      prompt: result.prompt,
+      images: result.images.map(
+        (image) => `${image.imagePath}/${image.imageName}`,
+      ),
+    };
   }
 }

@@ -16,8 +16,7 @@ type GenerationRequest = {
 type GenerationResponse = {
   generationId: string;
   status: GenerationStatus;
-  prompt: string;
-  imageNames: string[];
+  imagesInfo: { imageName: string; imagePath: string }[];
 };
 
 @Injectable()
@@ -90,8 +89,9 @@ export class ImagesService {
         status: GenerationStatus.GENERATED,
         images: {
           createMany: {
-            data: generationResponse.imageNames.map((imageName) => ({
-              imageName: imageName,
+            data: generationResponse.imagesInfo.map((info) => ({
+              imageName: info.imageName,
+              imagePath: info.imagePath,
             })),
           },
         },
@@ -99,10 +99,10 @@ export class ImagesService {
     });
   }
 
-  async getGenerationStatus(id: string) {
+  async getGeneratedImages(generationId: string) {
     return this.prismaService.generationRequest.findUnique({
       where: {
-        id: id,
+        id: generationId,
       },
       include: {
         images: true,

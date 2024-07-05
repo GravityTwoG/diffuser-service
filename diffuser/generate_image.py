@@ -1,7 +1,6 @@
 from diffusers import DiffusionPipeline
 import torch
 import platform
-from pathlib import Path
 
 pipeline = DiffusionPipeline \
   .from_pretrained(
@@ -23,9 +22,8 @@ else:
 # Recommended if your computer has < 64 GB of RAM
 pipeline.enable_attention_slicing()
 
-images_dir = Path('./images')
 
-def generate_image(prompt, image_name, num_images=1):
+def generate_image(prompt, num_images=1):
   prompts = [prompt] * num_images
   images = pipeline(
     prompts, 
@@ -34,19 +32,4 @@ def generate_image(prompt, image_name, num_images=1):
     safety_checker=None,
   ).images
 
-  image_names = []
-  for i, image in enumerate(images):
-    image_name = f"{image_name}.[{i}].png"
-    image_path = images_dir / image_name
-    image.save(image_path)
-    image_names.append(image_name)
-
-  return image_names
-
-
-if __name__ == '__main__':
-  generate_image(
-    "A black and white image",
-    "1234",
-    1
-  )
+  return images
