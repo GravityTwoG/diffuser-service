@@ -7,9 +7,6 @@ import { LoggerModule } from './logger/logger.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ImagesModule } from './images/images.module';
 
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-
 @Module({
   imports: [
     LoggerModule,
@@ -24,7 +21,7 @@ import { AppService } from './app.service';
     },
     ImagesModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
