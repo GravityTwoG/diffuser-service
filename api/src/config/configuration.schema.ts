@@ -13,6 +13,15 @@ export class EnvironmentVariables {
 
   @IsEnum(Environment)
   ENVIRONMENT: Environment;
+
+  @IsString()
+  RABBITMQ_URI: string;
+
+  @IsString()
+  GENERATION_REQUEST_QUEUE: string;
+
+  @IsString()
+  IMAGE_GENERATED_QUEUE: string;
 }
 
 export function validate(

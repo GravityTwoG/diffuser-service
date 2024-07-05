@@ -14,6 +14,7 @@ import { ImagesModule } from './images/images.module';
       envFilePath: `.env`,
       cache: true,
       validate: validate,
+      isGlobal: true,
     }),
     {
       global: true,

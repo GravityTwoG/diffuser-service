@@ -23,12 +23,14 @@ def send_image_generated(
   ch: pika.adapters.blocking_connection.BlockingChannel, 
   generation_id: str, 
   num_images: int,
+  image_names: list[str]
 ):
   # send a message to queue "image_generated"
   image_generated = {
-    "status": "done",
-    'generation_id': generation_id,
-    'image_count': num_images
+    'generationId': generation_id,
+    "status": "GENERATED",
+    'imageCount': num_images,
+    "imageNames": image_names
   }
   ch.basic_publish(
     exchange='',
@@ -44,45 +46,26 @@ def handle_generation_request(
   body: str,
 ):
   print(f" [x] Received {body}")
-  generate_request = json.loads(body)
-  
-  generate_image(
-    generate_request['prompt'],
-    generate_request['generation_id'],
-    generate_request['num_images']
+  generation_request = json.loads(body)
+
+  image_names = generate_image(
+    generation_request['prompt'],
+    generation_request['generationId'],
+    generation_request['imagesCount']
   )
   ch.basic_ack(delivery_tag = method.delivery_tag)
-  print(f" [x] Image generated: {generate_request['generation_id']}")
+  print(f" [x] Image generated: {generation_request['generationId']}")
 
   send_image_generated(
     ch, 
-    generate_request['generation_id'], 
-    generate_request['num_images'],
+    generation_request['generationId'],
+    generation_request['imagesCount'],
+    image_names
   )
   print(" [x] Sent 'image_generated'")
   
 
-def send_generation_request(
-  ch: pika.adapters.blocking_connection.BlockingChannel,
-):
-  # send a message to queue "generate_image"
-  generate_image_request = {
-    "prompt": "A black and white image",
-    "generation_id": "1234",
-    "num_images": 1
-  }
-  ch.basic_publish(
-    exchange='',
-    routing_key=GENERATION_REQUEST_QUEUE,
-    body=json.dumps(generate_image_request),
-    properties=pika.BasicProperties(
-      delivery_mode=pika.DeliveryMode.Persistent
-    )
-  )
-
-
 def main():
-
   credentials = pika.PlainCredentials(RABBITMQ_USERNAME, RABBITMQ_PASSWORD)
 
   connection = pika.BlockingConnection(pika.ConnectionParameters(
@@ -98,8 +81,6 @@ def main():
   # create a queue (idempotent operation)
   channel.queue_declare(queue=GENERATION_REQUEST_QUEUE, durable=True)
   channel.queue_declare(queue=IMAGE_GENERATED_QUEUE, durable=True)
-
-  send_generation_request(channel)
 
   # receive messages
   channel.basic_consume(
@@ -125,11 +106,3 @@ if __name__ == '__main__':
     except SystemExit:
       os._exit(0)
 
-'''
-Generate image message:
-{
-  "prompt": string,
-  "generation_id": uuid,
-  "num_images": int
-}
-'''

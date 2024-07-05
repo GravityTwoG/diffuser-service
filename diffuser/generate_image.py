@@ -34,9 +34,14 @@ def generate_image(prompt, image_name, num_images=1):
     safety_checker=None,
   ).images
 
+  image_names = []
   for i, image in enumerate(images):
-    image_path = images_dir / f"{image_name}.[{i}].png"
+    image_name = f"{image_name}.[{i}].png"
+    image_path = images_dir / image_name
     image.save(image_path)
+    image_names.append(image_name)
+
+  return image_names
 
 
 if __name__ == '__main__':
