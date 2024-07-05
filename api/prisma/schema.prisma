@@ -38,6 +38,8 @@ model Image {
   generationRequest   GenerationRequest @relation(fields: [generationRequestId], references: [id])
   generationRequestId String
 
+  imageName String @unique
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
