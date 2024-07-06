@@ -1,4 +1,12 @@
-# Text To Speech As A Service
+# Text To Image
+
+Web-UI for diffusers library.
+
+Implemented with:
+
+- Text To Image service: Python, diffusers, boto3, pika
+- REST API: TypeScript, Nest.js, Prisma, PostgreSQL, @golevelup/nestjs-rabbitmq
+- Client: TypeScript, Vue3
 
 ## RabbitMQ
 
