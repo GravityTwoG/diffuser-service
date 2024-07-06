@@ -41,53 +41,66 @@ class DiffuserService:
     properties: pika.spec.BasicProperties, 
     body: str,
   ):
-    print(f" [x] Received {body}")
-    generation_request = json.loads(body)
+    try:
+      print(f" [x] Received {body}")
+      generation_request = json.loads(body)
 
-    generation_id = generation_request['generationId']
+      generation_id = generation_request['generationId']
 
-    images = generate_image(
-      generation_request['prompt'],
-      generation_request['imagesCount']
-    )
-    print(f" [x] Images generated: {generation_id}")
+      images = generate_image(
+        generation_request['prompt'],
+        generation_request['imagesCount']
+      )
+      print(f" [x] Images generated: {generation_id}")
 
-    images_with_names = []
-    for i, image in enumerate(images):
-      image_name = f"{generation_id}.[{i}].png"
-      images_with_names.append({
-        "image_name": image_name,
-        "image": image
-      })
+      images_with_names = []
+      for i, image in enumerate(images):
+        image_name = f"{generation_id}.[{i}].png"
+        images_with_names.append({
+          "image_name": image_name,
+          "image": image
+        })
 
-    self.s3service.save_images(images_with_names)
+      self.s3service.save_images(images_with_names)
 
-    images_info = []
-    for image in images_with_names:
-      images_info.append({
-        "imageName": image['image_name'],
-        "imagePath": S3_BUCKET_NAME,
-      })
+      images_info = []
+      for image in images_with_names:
+        images_info.append({
+          "imageName": image['image_name'],
+          "imagePath": S3_BUCKET_NAME,
+        })
 
-    self.send_image_generated(
-      ch, 
-      generation_id,
-      images_info
-    )
-    ch.basic_ack(delivery_tag = method.delivery_tag)
-    print(" [x] Sent 'image_generated'")
+      self.send_generation_response(
+        ch, 
+        "GENERATED",
+        generation_id,
+        images_info
+      )
+      ch.basic_ack(delivery_tag = method.delivery_tag)
+      print(" [x] Sent 'image_generated'")
+
+    except Exception as e:
+      print(f"Error: {str(e)}")
+      self.send_generation_response(
+        ch, 
+        "FAILED",
+        generation_id,
+        [],
+      )
+      ch.basic_ack(delivery_tag = method.delivery_tag)
 
 
-  def send_image_generated(
+  def send_generation_response(
     self,
-    ch: pika.adapters.blocking_connection.BlockingChannel, 
+    ch: pika.adapters.blocking_connection.BlockingChannel,
+    status: str,
     generation_id: str, 
     images_info: list
   ):
     # send a message to queue "image_generated"
     image_generated = {
       'generationId': generation_id,
-      "status": "GENERATED",
+      "status": status,
       "imagesInfo": images_info
     }
     ch.basic_publish(

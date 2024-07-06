@@ -1,4 +1,5 @@
 import io
+import json
 import boto3
 from botocore.exceptions import ClientError
 
@@ -29,6 +30,7 @@ class S3Service:
     
     except self.s3.exceptions.NoSuchBucket:
       self.s3.create_bucket(Bucket=self.bucket_name)
+      self.set_read_only_policy()
 
     except ClientError as e:
       error_code = e.response['Error']['Code']
@@ -36,6 +38,34 @@ class S3Service:
         raise Exception(f"Do not have permission to access bucket {self.bucket_name}.")
       else:
           raise
+
+
+  def set_read_only_policy(self):
+    policy = {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "PublicRead",
+          "Effect": "Allow",
+          "Principal": "*",
+          "Action": ["s3:GetObject", "s3:ListBucket"],
+          "Resource": [
+            f"arn:aws:s3:::{self.bucket_name}",
+            f"arn:aws:s3:::{self.bucket_name}/*"
+          ]
+        }
+      ]
+    }
+    self.set_bucket_policy(policy)
+
+
+  def set_bucket_policy(self, policy):
+    try:
+      self.s3_client.put_bucket_policy(Bucket=self.bucket_name, Policy=json.dumps(policy))
+      print(f"Successfully set policy for bucket {self.bucket_name}")
+    except ClientError as e:
+      print(f"Error setting bucket policy: {str(e)}")
+
 
 
   def save_images(self, images: list):

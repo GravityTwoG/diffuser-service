@@ -39,6 +39,19 @@ services:
       MINIO_ROOT_PASSWORD: minio123
     command: minio server /data/minio/ --console-address ":9001"
 
+  nginx:
+    container_name: diffuser-nginx
+    image: nginx:1.15-alpine
+    depends_on:
+      - postgres
+      - minio
+      - rabbitmq
+    volumes:
+      - ./nginx_dev:/etc/nginx/conf.d
+    command: '/bin/sh -c ''while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g "daemon off;"'''
+    ports:
+      - '8080:8080'
+
 volumes:
   postgres_data:
   rabbitmq_data:

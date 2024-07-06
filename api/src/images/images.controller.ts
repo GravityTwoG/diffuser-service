@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { GenerationRequestDTO } from './dto/generation-request.dto';
@@ -27,8 +35,17 @@ export class ImagesController {
       status: result.status,
       prompt: result.prompt,
       images: result.images.map(
-        (image) => `${image.imagePath}/${image.imageName}`,
+        (image) => `/s3/${image.imagePath}/${image.imageName}`,
       ),
     };
+  }
+
+  @Get('/recent')
+  async getRecentImages(
+    @Query('imagesCount', ParseIntPipe) imagesCount: number,
+  ): Promise<string[]> {
+    const images = await this.imagesService.getRecentImages(imagesCount);
+
+    return images.map((image) => `/s3/${image.imagePath}/${image.imageName}`);
   }
 }

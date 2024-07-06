@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 
-import { loadRecentImages } from '../api.ts';
+import { getRecentImages } from '../api.ts';
 import { getWindow } from '../utils.ts';
 
 interface Props {
@@ -26,7 +26,14 @@ const translateX = ref(0);
 
 onMounted(async () => {
   try {
-    allImages.value = await loadRecentImages(elementsCount).catch((e) => {});
+    allImages.value = await getRecentImages(elementsCount);
+
+    if (allImages.value.length < elementsCount) {
+      const placeholders = new Array(elementsCount - allImages.value.length)
+        .fill(null)
+        .map((_, i) => `https://fakeimg.pl/200x200/?text=${i}`);
+      allImages.value.push(...placeholders);
+    }
   } catch (e) {
     console.error(e);
 
@@ -103,7 +110,7 @@ onMounted(async () => {
 }
 
 .second-line {
-  --translate-x2: calc(var(--translate-x) - 0vw);
+  --translate-x2: calc(var(--translate-x) - 10vw);
   transform: translateX(var(--translate-x2));
 }
 

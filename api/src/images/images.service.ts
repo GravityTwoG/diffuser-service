@@ -37,6 +37,9 @@ export class ImagesService {
         status: GenerationStatus.PENDING,
         prompt: dto.prompt,
       },
+      include: {
+        images: true,
+      },
     });
 
     this.addRequestToQueue(request.id, dto);
@@ -106,6 +109,15 @@ export class ImagesService {
       },
       include: {
         images: true,
+      },
+    });
+  }
+
+  async getRecentImages(imagesCount: number) {
+    return this.prismaService.image.findMany({
+      take: imagesCount,
+      orderBy: {
+        updatedAt: 'desc',
       },
     });
   }
